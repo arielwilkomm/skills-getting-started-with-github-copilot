@@ -20,11 +20,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
+        // Cria a lista de participantes
+        let participantsHTML = `
+          <div class="participants-section">
+            <strong>Participants:</strong>
+            <ul class="participants-list">
+              ${
+                details.participants.length > 0
+                  ? details.participants.map(email => `<li>${email}</li>`).join("")
+                  : `<li><em>No participants yet</em></li>`
+              }
+            </ul>
+          </div>
+        `;
+
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          ${participantsHTML}
         `;
 
         activitiesList.appendChild(activityCard);
@@ -56,12 +71,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       );
 
-      const result = await response.json();
+      let result = {};
+      try {
+        result = await response.json();
+      } catch (e) {
+        // Se não for JSON, mostra erro genérico
+        result = {};
+      }
 
       if (response.ok) {
-        messageDiv.textContent = result.message;
+        messageDiv.textContent = result.message || "Successfully signed up!";
         messageDiv.className = "success";
         signupForm.reset();
+        // Atualiza a lista de atividades para refletir a nova inscrição
+        activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
